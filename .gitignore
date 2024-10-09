@@ -1,3 +1,11 @@
+# binary file
+/combined/combined
+/mpi/mpi1
+/mpi/mpi2
+
+# txt file
+*.txt
+
 # Prerequisites
 *.d
 
