@@ -24,7 +24,7 @@ int main(int argc, char** argv)
   gtmp_init(num_threads);
 
   start_time = omp_get_wtime();
-#pragma omp parallel shared(num_threads) firstprivate(thread_num) // !added
+  #pragma omp parallel shared(num_threads) firstprivate(thread_num) // !added
   {
     thread_num = omp_get_thread_num(); // !added
     int i;
@@ -34,9 +34,8 @@ int main(int argc, char** argv)
         pub += thread_num;
       }
 
-      // printf("thread %d: before barrier value of pub = %d\n", thread_num, pub); // !added
       gtmp_barrier();
-      printf("thread %d: final value of pub = %d\n", thread_num, pub); // !added
+      // printf("thread %d: final value of pub = %d\n", thread_num, pub); // !added
     }
 
   }
@@ -45,8 +44,8 @@ int main(int argc, char** argv)
 
   // calculate time diff
   end_time = omp_get_wtime();
-  time_diff = end_time - start_time;
+  time_diff = (end_time - start_time) * 1e6;;
 
-  printf("Time taken: %2f seconds\n", time_diff);
+  printf("Time taken: %.0f μs\n", time_diff);
   return 0;
 }

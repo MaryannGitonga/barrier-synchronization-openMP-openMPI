@@ -24,7 +24,6 @@ static int sense2;
 int world_size;
 
 void gtmpi_init(int num_processes){
-    printf("....Sense-reversing barrier starting....\n");
     counter = 1;
     sense2 = 0;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -53,5 +52,4 @@ void gtmpi_barrier(){
 }
 
 void gtmpi_finalize(){
-    printf("....Sense-reversing barrier is done....\n");
 }

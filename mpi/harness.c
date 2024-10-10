@@ -63,14 +63,14 @@ int main(int argc, char** argv)
   
     // gtmpi_barrier();
     
-    printf("process%d: local Summation = %d\n", my_id, local_sum);
+    // printf("process%d: local Summation = %d\n", my_id, local_sum);
 
     MPI_Gather(&local_sum, 1, MPI_INT, total_sum, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // performance check
     end_time = MPI_Wtime();
     time_diff = end_time - start_time;
-    printf("Time taken: %2f seconds\n", time_diff);
+    // printf("Time taken: %2f seconds\n", time_diff);
     MPI_Gather(&time_diff, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if(my_id == 0){
@@ -80,8 +80,9 @@ int main(int argc, char** argv)
         result_sum += total_sum[i];
         time_result_sum += time_diff_sum[i];
       }
-      printf("Total Summation = %d\n", result_sum);
-      printf("Average Time taken: %2f seconds\n", time_result_sum/num_processes);
+      // printf("Total Summation = %d\n", result_sum);
+      double average_time_diff = (time_result_sum/num_processes) * 1e6;;
+      printf("Time taken: %.0f μs\n", average_time_diff);
     }
   }
 
