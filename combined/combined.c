@@ -15,22 +15,35 @@ tournament_round_t **tournament_rounds;
 bool sense;
 
 /*=============================================================
-Sense-reverse barrier
+Dissemination barrier
 =============================================================*/
-int P;
-int count;
-bool sense;
-static bool local_sense = true;
-#pragma omp threadprivate(local_sense)
+int **flags;
+int n_threads;
+int rounds;
+static int parity = 0;
+// static int opposite_local_sense = 0;
+static int local_sense = 1;
+#pragma omp threadprivate(parity, local_sense)
 
-void gtmpi_barrier();
+void gtmp_barrier();
+
 void combined_init(int num_processes, int num_threads){
     /*=============================================================
-    Sense-reverse barrier
+    Dissemination barrier
     =============================================================*/
-    P = num_threads;
-    count = P;
-    sense = true;
+    n_threads = num_threads;
+    rounds = (int)ceil(log2(num_threads)); // calculate rounds
+
+    // allocate memory for flags: flags[thread_id][parity][round]
+    flags = (int**)malloc(num_threads * sizeof(int*));
+    for (int i = 0; i < num_threads; i++)
+    {
+        flags[i] = (int*)malloc(2 * rounds * sizeof(int));
+        for (int j = 0; j < 2 * rounds; j++)
+        {
+            flags[i][j] = 0; // init all flags to 0
+        }
+    }
 
     /*=============================================================
     Tournament barrier
@@ -88,21 +101,35 @@ void combined_init(int num_processes, int num_threads){
 }
 
 void combined_barrier(int round_cnt){
-    // int thread_id = omp_get_thread_num();
+    /*=============================================================
+    Dissemination barrier
+    =============================================================*/
+    int thread_id = omp_get_thread_num();
+    int node_id;
+    MPI_Comm_rank(MPI_COMM_WORLD, &node_id);
 
-    local_sense = !local_sense; // each processor toggles its own sense
-    #pragma omp critical // if fetch_and_decrement ($count) = 1
+    for (int round = 0; round < rounds; round++)
     {
-        count--;
-        if(count == 0){   // gtmpi_barrier(); 
-            // printf("round%d:process%d:thread%d | call gtmpi_barrier() \n", round_cnt,vpid, thread_id);
-            MPI_Barrier(MPI_COMM_WORLD);
-            count = P;
-            sense = local_sense; // last processor toggles global sense
-        }
+        int peer = (thread_id + (1 << round)) % n_threads;
+        flags[peer][parity * rounds + round] = local_sense;
+
+        // spin on local sense until peer sends wake up call
+        while (flags[thread_id][parity * rounds + round] != local_sense);
+        
     }
 
-    while(sense != local_sense);
+    if (parity == 1)
+    {
+        local_sense = !local_sense;
+    }
+    
+    parity = 1 - parity; // alternate parity
+    #pragma omp master
+    {
+        // printf("process%d:thread%d | call gtmpi_barrier() \n", node_id, thread_id);
+        gtmpi_barrier();
+    }
+
 
 }
 
@@ -114,6 +141,12 @@ void combined_finalize(){
         free(tournament_rounds[i]);
     free(tournament_rounds);
 
+    /*=============================================================
+    Dissemination barrier
+    =============================================================*/
+    for (int i = 0; i < n_threads; i++)
+        free(flags[i]);
+    free(flags);    
 }
 
 void gtmpi_barrier(){ 
