@@ -1,10 +1,6 @@
 #include <omp.h>
 #include "gtmp.h"
-#include <stdio.h> //!added
-
-#define Boolean int
-#define true 1
-#define false 0
+#include <stdio.h> 
 
 /*
     From the MCS Paper: A sense-reversing centralized barrier
@@ -23,19 +19,17 @@
 */
 int P;
 int count;
-Boolean sense;
-static Boolean local_sense = true;
+bool sense;
+static bool local_sense = true;
 #pragma omp threadprivate(local_sense)
 
 void gtmp_init(int num_threads){
-    // printf("[Serialized part] The number of threads is %d\n", num_threads);
     P = num_threads;
     count = P;
     sense = true;
 }
 
-void gtmp_barrier(){ // #pragma omp barrier
-    // printf("[before]thread%d : local_sense = %d\n", omp_get_thread_num(), local_sense);
+void gtmp_barrier(){ 
 
     local_sense = !local_sense; // each processor toggles its own sense
     #pragma omp critical // if fetch_and_decrement ($count) = 1
@@ -46,7 +40,6 @@ void gtmp_barrier(){ // #pragma omp barrier
                 sense = local_sense; // last processor toggles global sense
             }
         }
-    // printf("thread%d : local_sense = %d\n", omp_get_thread_num(), local_sense);
 
     while(sense != local_sense);
 }
