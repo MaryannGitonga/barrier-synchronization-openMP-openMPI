@@ -43,7 +43,6 @@ static int local_sense = 1;
 #pragma omp threadprivate(parity, local_sense)
 
 void gtmp_init(int num_threads){
-    printf("....Dissemination barrier starting....\n");
     n_threads = num_threads;
     rounds = (int)ceil(log2(num_threads)); // calculate rounds
 
@@ -86,7 +85,5 @@ void gtmp_finalize(){
     }
 
     free(flags);
-    
-    printf("....Dissemination barrier is done....\n");
 }
 

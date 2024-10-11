@@ -57,7 +57,6 @@ int main(int argc, char** argv)
     printf("round%d:process%d | pub = %d\n", i, my_id, pub);
     gtmpi_barrier(); 
   }
-
   /* ==============================================
   Timing check & clean up
   ==============================================*/
@@ -72,7 +71,9 @@ int main(int argc, char** argv)
     double time_result_sum = 0;
     for(int i=0; i<num_processes;i++)
       time_result_sum += time_diff_sum[i];
-    printf("Average Time taken: %2f seconds\n", time_result_sum/num_processes);
+    
+    double average_time_diff = (time_result_sum/num_processes) * 1e6;;
+    printf("Time taken: %.0f μs\n", average_time_diff);
   }
 
   gtmpi_finalize();  

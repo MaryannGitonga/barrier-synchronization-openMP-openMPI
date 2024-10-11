@@ -53,10 +53,10 @@ int main(int argc, char** argv)
   Timing check & clean up
   ==============================================*/
   end_time = omp_get_wtime();
-  time_diff = end_time - start_time;
-  printf("Time taken: %2f seconds\n", time_diff);
+  time_diff = (end_time - start_time) * 1e6;;
+
+  printf("Time taken: %.0f μs\n", time_diff);
 
   gtmp_finalize();
-
   return 0;
 }
