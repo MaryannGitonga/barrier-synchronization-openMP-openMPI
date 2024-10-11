@@ -100,7 +100,7 @@ void combined_init(int num_processes, int num_threads){
     }
 }
 
-void combined_barrier(int round_cnt){
+void combined_barrier(){
     /*=============================================================
     Dissemination barrier
     =============================================================*/

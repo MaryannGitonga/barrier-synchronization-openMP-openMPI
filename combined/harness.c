@@ -58,16 +58,19 @@ int main(int argc, char** argv)
   int i = 0;
   #pragma omp parallel shared(pub) firstprivate(thread_num, i)
   {
-    for(i=0; i<3; i++){
+    for(i=0; i<10; i++){
       thread_num = omp_get_thread_num(); 
       #pragma omp critical 
       {
         pub += thread_num;
       }  
 
-    combined_barrier(i); // passing i for debugging purpose
-    printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
-    combined_barrier(i); 
+    combined_barrier(); 
+    #pragma omp master
+    {
+      printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
+    }
+    combined_barrier(); 
     }
   }
   /* ==============================================

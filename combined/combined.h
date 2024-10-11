@@ -18,13 +18,8 @@ extern bool sense;
 extern int P;
 extern int num_tournament_rounds;
 
-// OpenMP
-extern int P;
-extern int count;
-extern bool sense;
-
 void combined_init(int num_processes, int num_threads);
-void combined_barrier(int round_cnt);
+void combined_barrier(); 
 void gtmpi_barrier();
 void combined_finalize();
 
