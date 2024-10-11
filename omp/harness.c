@@ -5,9 +5,12 @@
 
 int main(int argc, char** argv)
 {
-  int num_threads,num_iter=10;
-  double start_time = 0, end_time = 0, time_diff = 0; // !added
-  int pub = 0, thread_num = -1; // !added
+  double start_time = 0, end_time = 0, time_diff = 0; 
+
+  int num_threads;
+  int thread_num = -1; 
+  int num_iter=10;
+  int pub = 0; 
 
   if (argc < 2){
     fprintf(stderr, "Usage: ./harness [NUM_THREADS]\n");
@@ -22,30 +25,38 @@ int main(int argc, char** argv)
   omp_set_num_threads(num_threads);
 
   gtmp_init(num_threads);
-
   start_time = omp_get_wtime();
-  #pragma omp parallel shared(num_threads) firstprivate(thread_num) // !added
+
+  /* ==============================================
+  Parellel part
+  ==============================================*/  
+  int i=0;
+  #pragma omp parallel shared(pub) firstprivate(thread_num, i) 
   {
-    thread_num = omp_get_thread_num(); // !added
-    int i;
-    for(i = 0; i < num_iter; i++){
-      #pragma omp critical // !added
+    thread_num = omp_get_thread_num(); 
+    for(i=0; i < num_iter; i++){
+      #pragma omp critical 
       {
         pub += thread_num;
       }
 
       gtmp_barrier();
-      // printf("thread %d: final value of pub = %d\n", thread_num, pub); // !added
+      #pragma omp master
+      {
+        printf("round%d:thread%d | pub = %d\n", i, thread_num, pub);
+      }
+      gtmp_barrier();
     }
-
   }
 
-  gtmp_finalize();
-
-  // calculate time diff
+  /* ==============================================
+  Timing check & clean up
+  ==============================================*/
   end_time = omp_get_wtime();
   time_diff = (end_time - start_time) * 1e6;;
 
   printf("Time taken: %.0f μs\n", time_diff);
+
+  gtmp_finalize();
   return 0;
 }

@@ -18,15 +18,15 @@
     // initially
     //    rounds[i][k].flag = false for all i,k
     // rounds[i][k].role =
-    //    winner if k > 0, i mod 2^k = 0, i + 2^(k-1) < P, and 2^k < P
-    //    bye if k > 0, i mod 2^k = 0, and i + 2^(k-1) >= P
-    //    loser if k > 0 and i mod 2^k = 2^(k-1)
-    //    champion if k > 0, i = 0, and 2^k >= P
+    //    winner if k > 0, i mod (int)pow(2,k) = 0, i + (int)pow(2,k-1) < P, and (int)pow(2,k) < P
+    //    bye if k > 0, i mod (int)pow(2,k) = 0, and i + (int)pow(2,k-1) >= P
+    //    loser if k > 0 and i mod (int)pow(2,k) = (int)pow(2,k-1)
+    //    champion if k > 0, i = 0, and (int)pow(2,k) >= P
     //    dropout if k = 0
     //    unused otherwise; value immaterial
     // rounds[i][k].opponent points to
-    //    rounds[i-2^(k-1)][k].flag if rounds[i][k].role = loser
-    //    rounds[i+2^(k-1)][k].flag if rounds[i][k].role = winner or champion
+    //    rounds[i-(int)pow(2,k-1)][k].flag if rounds[i][k].role = loser
+    //    rounds[i+(int)pow(2,k-1)][k].flag if rounds[i][k].role = winner or champion
     //    unused otherwise; value immaterial
     
     procedure tournament_barrier
@@ -96,15 +96,17 @@ void gtmpi_init(int num_processes){
 
             // init role;
             if(k > 0){ 
-                if((i % (int)pow(2,k) == 0) 
-                    && (i + (int)pow(2,k-1) < P) && ((int)pow(2,k) < P)){ // winner
+                if(i % (int)pow(2,k) == 0){ // bye or winner
+                    if( (i + (int)pow(2,k-1) < P) && ((int)pow(2,k) < P)){ //  && not last round
                         rounds[i][k].role = winner;
+                    } else if(i + (int)pow(2,k-1) >= P){ // not available in this round // !review again
+                        rounds[i][k].role = bye;
+                    }
                 } else if(i % (int)pow(2,k) == (int)pow(2,k-1)){ // loser
                     rounds[i][k].role = loser;
-                } else if( (i == 0) && ((int)pow(2,k) >= P) ){ // champion when root proc && when last round
+                }
+                if( (i == 0) && ((int)pow(2,k) >= P) ){ // champion when root proc && when last round
                     rounds[i][k].role = champion;
-                } else{ // not available in this round
-                        rounds[i][k].role = bye;
                 }
             }else if(k==0){ // dropout
                 rounds[i][k].role = dropout;
