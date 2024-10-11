@@ -1,18 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h> // added
+#include <unistd.h> 
 #include <mpi.h>
 #include <omp.h>
 #include "combined.h"
 
+void split_domain(int domain_size, int my_id, int num_processes, int* subdomain_start, int* subdomain_size);
 void write_to_file(int my_id, int thread_id, int local_sum);
 
 int main(int argc, char** argv)
 {
+  double start_time = 0, end_time = 0, time_diff = 0; // calculate time the barrier takes
+  double *time_diff_sum = NULL;
+
   int num_threads;
   int thread_num = -1;
-  int num_processes;
-  int my_id;
+  int num_processes, my_id;
 
   MPI_Init(&argc, &argv);
   
@@ -44,31 +47,52 @@ int main(int argc, char** argv)
           processor_name, my_id, num_processes);
   MPI_Barrier(MPI_COMM_WORLD);
 
-// mpiexec.mpich -np 2 ./combined 4 => hang
-// mpiexec.mpich -np 4 ./combined 4 => not hang
-  int pub = 0;
-  int i = 0;
-#pragma omp parallel shared(pub) firstprivate(thread_num, i)
-{
-  for(i=0; i<3; i++){
-    thread_num = omp_get_thread_num(); 
-    #pragma omp critical 
-    {
-      pub += thread_num;
-    }  
-
-  // usleep(10);
-  combined_barrier(i); // passing i for debugging purpose
-  printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
-  // usleep(10);
-  combined_barrier(i); 
+  if(my_id == 0){ 
+    time_diff_sum = (double *)malloc(sizeof(double) * num_processes);
   }
 
-}
+  /* ==============================================
+  Parellel part
+  ==============================================*/
+  int pub = 0;
+  int i = 0;
+  #pragma omp parallel shared(pub) firstprivate(thread_num, i)
+  {
+    for(i=0; i<3; i++){
+      thread_num = omp_get_thread_num(); 
+      #pragma omp critical 
+      {
+        pub += thread_num;
+      }  
+
+    combined_barrier(i); // passing i for debugging purpose
+    printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
+    combined_barrier(i); 
+    }
+  }
+  /* ==============================================
+  Parellel part
+  ==============================================*/
+
+  // performance check
+  end_time = MPI_Wtime();
+  time_diff = end_time - start_time;
+  // printf("Time taken: %2f seconds\n", time_diff);
+  MPI_Gather(&time_diff, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+  if(my_id == 0){
+    double time_result_sum = 0;
+    for(int i=0; i<num_processes;i++){
+      time_result_sum += time_diff_sum[i];
+    }
+    printf("Average Time taken: %2f seconds\n", time_result_sum/num_processes);
+  }
+
 
   combined_finalize();  
   MPI_Finalize();
 
+  free(time_diff_sum);
   return 0;
 }
 
