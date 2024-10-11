@@ -55,8 +55,8 @@ int main(int argc, char** argv)
   int i = 0;
   #pragma omp parallel shared(pub) firstprivate(thread_num, i)
   {
+    thread_num = omp_get_thread_num(); 
     for(i=0; i < num_iter; i++){
-      thread_num = omp_get_thread_num(); 
       #pragma omp critical 
       {
         pub += thread_num;
@@ -71,9 +71,8 @@ int main(int argc, char** argv)
     }
   }
 
-
   /* ==============================================
-  Timing check & cleaning
+  Timing check & clean up
   ==============================================*/
   end_time = MPI_Wtime();
   time_diff = end_time - start_time;
