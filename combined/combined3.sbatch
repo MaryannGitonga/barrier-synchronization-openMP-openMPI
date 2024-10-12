@@ -7,6 +7,7 @@
 #SBATCH -q coc-ice
 #SBATCH -o combined_barrier_builtin.out
 #SBATCH -N 8
+#SBATCH -e combined_barrier_builtin.csv
 
 echo "Started on `/bin/hostname`"
 

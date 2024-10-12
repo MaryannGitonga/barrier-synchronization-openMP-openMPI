@@ -7,6 +7,7 @@
 #SBATCH -q coc-ice
 #SBATCH -o combined_barrier_disse_tourna.out
 #SBATCH -N 8
+#SBATCH -e combined_barrier_disse_tourna.csv
 
 echo "Started on `/bin/hostname`"
 

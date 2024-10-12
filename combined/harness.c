@@ -4,6 +4,7 @@
 #include <mpi.h>
 #include <omp.h>
 #include <time.h>
+#include <string.h>
 #include "combined.h"
 
 int main(int argc, char** argv)
@@ -21,7 +22,7 @@ int main(int argc, char** argv)
   int exp_iter = 1000;
   double total_time = 0;
   int pub = 0;
-
+    
   // debugging purpose
   char processor_name[MPI_MAX_PROCESSOR_NAME];
   int name_len;
@@ -55,9 +56,10 @@ int main(int argc, char** argv)
   // MPI_Barrier(MPI_COMM_WORLD);
   // #pragma omp barrier
 
-  // if(my_id == 0){ 
+  if(my_id == 0){
+    fprintf(stderr, "processes, threads, time\n");
     // time_diff_sum = (double *)malloc(sizeof(double) * num_processes);
-  // }
+  }
 
   for(int j=0; j< exp_iter; j++){
     combined_init(num_processes, num_threads);
@@ -115,6 +117,7 @@ int main(int argc, char** argv)
 
     printf("Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
     // printf("Average time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2/exp_iter);
+    fprintf(stderr, "%d, %d, %f\n", num_processes, num_threads, total_time/num_processes/exp_iter);
   }
 
   MPI_Finalize();
