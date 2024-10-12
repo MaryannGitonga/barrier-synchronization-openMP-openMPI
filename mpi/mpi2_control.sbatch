@@ -5,7 +5,6 @@
 #SBATCH --mem-per-cpu=1G
 #SBATCH -t 5
 #SBATCH -q coc-ice
-#SBATCH -o mpi2_result.out
 
 echo "Started on `/bin/hostname`"
 
@@ -18,5 +17,5 @@ mpicc gtmpi2.c harness.c -o mpi2 -g -Wall -std=gnu99 -I. -lm
 for processes in {2..12}
 do
     echo "Running tournament barrier with $processes processes"
-    srun -N=$processes ./mpi2 $processes 1000 > mpi2_result_${processes}.out
+    srun -N $processes ./mpi2 $processes 1000 > mpi2_result_${processes}.out
 done

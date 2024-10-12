@@ -5,7 +5,6 @@
 #SBATCH --mem-per-cpu=1G
 #SBATCH -t 5
 #SBATCH -q coc-ice
-#SBATCH -o mp2_result.out
 
 echo "Started on `/bin/hostname`"
 
@@ -18,5 +17,5 @@ gcc gtmp2.c harness.c -o mp2 -g -std=gnu99 -I. -Wall -fopenmp -lm
 for threads in {2..8}
 do
     echo "Running mp2 barrier with $threads threads"
-    srun --cpus-per-task=$threads ./mp2 $threads 1000 > mp2_result_${threads}.out
+    srun --cpus-per-task=$threads -o mp2_result_${threads}.out ./mp2 $threads 1000
 done

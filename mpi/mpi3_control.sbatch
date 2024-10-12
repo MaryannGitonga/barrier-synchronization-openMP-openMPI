@@ -5,7 +5,6 @@
 #SBATCH --mem-per-cpu=1G
 #SBATCH -t 5
 #SBATCH -q coc-ice
-#SBATCH -o mpi3_result.out
 
 echo "Started on `/bin/hostname`"
 
@@ -18,5 +17,5 @@ mpicc gtmpi3.c harness.c -o mpi3 -g -Wall -std=gnu99 -I. -lm
 for processes in {2..12}
 do
     echo "Running built-in barrier with $processes processes"
-    srun -N=$processes ./mpi3 $processes 1000 > mpi3_result_${processes}.out
+    srun -N $processes ./mpi3 $processes 1000 > mpi3_result_${processes}.out
 done
