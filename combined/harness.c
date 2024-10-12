@@ -101,7 +101,7 @@ int main(int argc, char** argv)
   
     if(my_id == 0){
       total_time += time_diff_sum;
-      printf("iter: %d |dt: %f\n", exp_iter, dt);
+      printf("iter: %d |dt: %f\n", j, dt);
     }
     combined_finalize();  
   }
