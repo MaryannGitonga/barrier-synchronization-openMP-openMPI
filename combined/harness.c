@@ -76,11 +76,11 @@ int main(int argc, char** argv)
         }  
 
       combined_barrier(); 
-      // #pragma omp master
-      // {
-      //   printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
-      // }
-      // combined_barrier(); 
+      #pragma omp master
+      {
+        printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
+      }
+      combined_barrier(); 
       }
     }
 
@@ -106,11 +106,13 @@ int main(int argc, char** argv)
     combined_finalize();  
   }
 
-  printf("Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
-  // printf("Total time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2);
+  if(my_id == 0){
+    printf("Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
+    // printf("Total time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2);
 
-  printf("Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
-  // printf("Average time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2/exp_iter);
+    printf("Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
+    // printf("Average time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2/exp_iter);
+  }
 
   MPI_Finalize();
   // free(time_diff_sum);
