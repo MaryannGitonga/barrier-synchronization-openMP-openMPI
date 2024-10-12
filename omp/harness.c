@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 
   int num_threads;
   int thread_num = -1; 
-  int num_iter=100;
+  int num_iter = 100;
   int pub = 0; 
 
 

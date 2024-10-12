@@ -2,18 +2,18 @@
 #include <stdlib.h>
 #include <unistd.h> 
 #include <mpi.h>
+#include <time.h>
 #include "gtmpi.h"
-
-void split_domain(int domain_size, int my_id, int num_processes, int* subdomain_start, int* subdomain_size);
-void write_to_file(int my_id, int local_sum);
 
 int main(int argc, char** argv)
 {
-  double start_time = 0, end_time = 0, time_diff = 0; // calculate time the barrier takes
+  // double start_time = 0, end_time = 0, time_diff = 0; // calculate time the barrier takes
   double *time_diff_sum = NULL;
+  struct timespec tstart, tend;
+  double dt;
 
   int num_processes, my_id;
-  int num_iter = 10;
+  int num_iter = 100;
   int pub = 0;
 
   // debugging purpose
@@ -25,6 +25,10 @@ int main(int argc, char** argv)
   if (argc < 2){
     fprintf(stderr, "Usage: ./harness [NUM_PROCS]\n");
     exit(EXIT_FAILURE);
+  }
+
+  if(argc > 2){ // to change number of iteration
+    num_iter = strtol(argv[2], NULL, 10);
   }
 
   num_processes = strtol(argv[1], NULL, 10);
@@ -44,7 +48,8 @@ int main(int argc, char** argv)
   }
 
   gtmpi_init(num_processes);
-  start_time = MPI_Wtime();
+  // start_time = MPI_Wtime();
+  clock_gettime(CLOCK_REALTIME, &tstart);
 
   /* ==============================================
   Parellel part
@@ -60,19 +65,22 @@ int main(int argc, char** argv)
   /* ==============================================
   Timing check & clean up
   ==============================================*/
-  end_time = MPI_Wtime();
-  time_diff = end_time - start_time;
-  // printf("Time taken: %2f seconds\n", time_diff);
+  clock_gettime(CLOCK_REALTIME, &tend);
+  dt = (tend.tv_sec*1e6+tend.tv_nsec/1e3)-(tstart.tv_sec*1e6+tstart.tv_nsec/1e3);
+
+  // end_time = MPI_Wtime();
+  // time_diff = end_time - start_time;
+  // printf("Time taken: %2f seconds\n", dt);
 
   // Gather time calcaulation from all processes
-  MPI_Gather(&time_diff, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Gather(&dt, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   if(my_id == 0){
     double time_result_sum = 0;
     for(int i=0; i<num_processes;i++)
       time_result_sum += time_diff_sum[i];
     
-    double average_time_diff = (time_result_sum/num_processes) * 1e6;;
+    double average_time_diff = time_result_sum/num_processes;
     printf("Time taken: %.0f μs\n", average_time_diff);
   }
 

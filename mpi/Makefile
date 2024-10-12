@@ -4,8 +4,9 @@ LDLIBS = -lm
 
 MP_SRC1 = gtmpi1.c
 MP_SRC2 = gtmpi2.c
+MP_SRC3 = gtmpi3.c
 
-all: mpi1 mpi2
+all: mpi1 mpi2 mpi3
 
 mpi1: gtmpi1.c harness.o
 	$(MPICC) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS)
@@ -13,9 +14,12 @@ mpi1: gtmpi1.c harness.o
 mpi2: gtmpi2.c harness.o
 	$(MPICC) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS)
 
+mpi3: gtmpi3.c harness.o
+	$(MPICC) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS)
+
 %.o: %.c
 	$(MPICC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf *.o *.dSYM mpi1 mpi2
+	rm -rf *.o *.dSYM mpi1 mpi2 mpi3
 
