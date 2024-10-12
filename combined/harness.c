@@ -76,11 +76,11 @@ int main(int argc, char** argv)
         }  
 
       combined_barrier(); 
-      #pragma omp master
-      {
-        printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
-      }
-      combined_barrier(); 
+      // #pragma omp master
+      // {
+      //   printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
+      // }
+      // combined_barrier(); 
       }
     }
 
