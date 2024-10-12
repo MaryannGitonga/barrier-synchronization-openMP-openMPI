@@ -17,6 +17,6 @@ mpicc combined3.c harness.c -o combined3 -g -Wall -std=gnu99 -I. -lm
 for processes in {2..8}; do
     for threads in {2..12}; do
         echo "Running combined3 barrier with $processes processes $threads threads"
-        srun -N=$processes --cpus-per-task=$threads ./combined3 $threads 1000 >> combined3_result_${processes}_${threads}.out
+        srun -N=$processes --cpus-per-task=$threads -o combined3_result_${processes}_${threads}.out ./combined3 $threads 1000
     done
 done

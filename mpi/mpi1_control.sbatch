@@ -5,7 +5,6 @@
 #SBATCH --mem-per-cpu=1G
 #SBATCH -t 5
 #SBATCH -q coc-ice
-#SBATCH -o mpi1_result.out
 
 echo "Started on `/bin/hostname`"
 
@@ -18,5 +17,5 @@ mpicc gtmpi1.c harness.c -o mpi1 -g -Wall -std=gnu99 -I. -lm
 for processes in {2..12}
 do
     echo "Running sense-reversing barrier with $processes processes"
-    srun -N=$processes ./mpi1 $processes 1000 > mpi1_result_${processes}.out
+    srun -N=$processes -o mpi1_result_${processes}.out ./mpi1 $processes 1000 > 
 done
