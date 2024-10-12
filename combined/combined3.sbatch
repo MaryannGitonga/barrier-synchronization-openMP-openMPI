@@ -20,6 +20,6 @@ mpicc combined3.c harness.c -o combined3 -g -Wall -fopenmp -std=gnu99 -I. -lm
 for processes in {2,4,8}; do
     for threads in {2..12}; do
         echo "Running combined3 barrier with $processes processes $threads threads"
-        srun -N $processes ./combined3 $threads 1000
+        srun -N $processes ./combined3 $threads 10000
     done
 done
