@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   // debugging purpose
   MPI_Barrier(MPI_COMM_WORLD);
 
-  fprintf(stderr, "Hello world from processor %s, rank %d out of %d processors\n", processor_name, my_id, num_processes);
+  fprintf(stdout, "Hello world from processor %s, rank %d out of %d processors\n", processor_name, my_id, num_processes);
 
   // printf("Hello world from processor %s, rank %d out of %d processors\n",
   //         processor_name, my_id, num_processes);
@@ -84,18 +84,18 @@ int main(int argc, char** argv)
 
     if(my_id == 0){
       total_time += time_diff_sum;
-      fprintf(stderr, "iter: %d |dt: %f\n", j, dt);
+      fprintf(stdout, "iter: %d |dt: %f\n", j, dt);
     }
     gtmpi_finalize();  
   }
 
-  fprintf(stderr, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
+  fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
   // printf("Total time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2);
 
-  fprintf(stderr, "Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
+  fprintf(stdout, "Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
   // printf("Average time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2/exp_iter);
 
-  fprintf(stdout, "%d, %f,\n", num_processes, total_time/num_processes/exp_iter);
+  fprintf(stderr, "%d, %f,\n", num_processes, total_time/num_processes/exp_iter);
 
   MPI_Finalize();
   // free(time_diff_sum);
