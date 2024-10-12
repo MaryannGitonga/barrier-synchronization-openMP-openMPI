@@ -8,8 +8,9 @@
 
 int main(int argc, char** argv)
 {
-  // double start_time = 0, end_time = 0, time_diff = 0; // calculate time the barrier takes
-  double *time_diff_sum = NULL;
+  // double start_time = 0, end_time = 0, time_diff = 0; 
+  // double *time_diff_sum = NULL;
+  double time_diff_sum;
   struct timespec tstart, tend;
   double dt;
 
@@ -17,6 +18,8 @@ int main(int argc, char** argv)
   int num_threads;
   int thread_num = -1;
   int num_iter = 100;
+  int exp_iter = 1000;
+  double total_time = 0;
   int pub = 0;
 
   // debugging purpose
@@ -31,7 +34,7 @@ int main(int argc, char** argv)
   }
 
   if(argc > 2){ // to change number of iteration
-    num_iter = strtol(argv[2], NULL, 10);
+    exp_iter = strtol(argv[2], NULL, 10);
   }
 
   num_threads = strtol(argv[1], NULL, 10);
@@ -49,61 +52,68 @@ int main(int argc, char** argv)
           processor_name, my_id, num_processes);
   MPI_Barrier(MPI_COMM_WORLD);
 
-  if(my_id == 0){ 
-    time_diff_sum = (double *)malloc(sizeof(double) * num_processes);
-  }
+  // if(my_id == 0){ 
+    // time_diff_sum = (double *)malloc(sizeof(double) * num_processes);
+  // }
 
-  combined_init(num_processes, num_threads);
-  // start_time = MPI_Wtime();
-  clock_gettime(CLOCK_REALTIME, &tstart);
+  for(int j=0; j< exp_iter; j++){
+    combined_init(num_processes, num_threads);
+    // start_time = MPI_Wtime();
+    clock_gettime(CLOCK_REALTIME, &tstart);
 
 
-  /* ==============================================
-  Parellel part
-  ==============================================*/
-  int i = 0;
-  #pragma omp parallel shared(pub) firstprivate(thread_num, i)
-  {
-    thread_num = omp_get_thread_num(); 
-    for(i=0; i < num_iter; i++){
-      #pragma omp critical 
-      {
-        pub += thread_num;
-      }  
-
-    combined_barrier(); 
-    #pragma omp master
+    /* ==============================================
+    Parellel part
+    ==============================================*/
+    int i = 0;
+    #pragma omp parallel shared(pub) firstprivate(thread_num, i)
     {
-      printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
+      thread_num = omp_get_thread_num(); 
+      for(i=0; i < num_iter; i++){
+        #pragma omp critical 
+        {
+          pub += thread_num;
+        }  
+
+      combined_barrier(); 
+      // #pragma omp master
+      // {
+      //   printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
+      // }
+      // combined_barrier(); 
+      }
     }
-    combined_barrier(); 
+
+    /* ==============================================
+    Timing check & clean up
+    ==============================================*/
+    clock_gettime(CLOCK_REALTIME, &tend);
+    // end_time = MPI_Wtime();
+    dt = (tend.tv_sec*1e6+tend.tv_nsec/1e3)-(tstart.tv_sec*1e6+tstart.tv_nsec/1e3);
+    // time_diff = end_time - start_time;
+    // printf("Time taken: %2f seconds\n", time_diff);
+
+    // Gather time calcaulation from all processes
+    // Reference: https://rookiehpc.org/mpi/docs/mpi_sum/index.html
+    
+    MPI_Reduce(&dt, &time_diff_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    // MPI_Gather(&dt, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  
+    if(my_id == 0){
+      total_time += time_diff_sum;
+      printf("iter: %d |dt: %f\n", exp_iter, dt);
     }
+    combined_finalize();  
   }
 
-  /* ==============================================
-  Timing check & clean up
-  ==============================================*/
-  clock_gettime(CLOCK_REALTIME, &tend);
-  // end_time = MPI_Wtime();
-  dt = (tend.tv_sec*1e6+tend.tv_nsec/1e3)-(tstart.tv_sec*1e6+tstart.tv_nsec/1e3);
-  // time_diff = end_time - start_time;
-  // printf("Time taken: %2f seconds\n", time_diff);
+  printf("Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
+  // printf("Total time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2);
 
-  // Gather time calcaulation from all processes
-  MPI_Gather(&dt, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  printf("Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
+  // printf("Average time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2/exp_iter);
 
-  if(my_id == 0){
-    double time_result_sum = 0;
-    for(int i=0; i<num_processes;i++)
-      time_result_sum += time_diff_sum[i];
-
-    double average_time_diff = time_result_sum/num_processes;
-    printf("Time taken: %.0f μs\n", average_time_diff);
-  }
-
-  combined_finalize();  
   MPI_Finalize();
-  free(time_diff_sum);
+  // free(time_diff_sum);
   return 0;
 }
 
