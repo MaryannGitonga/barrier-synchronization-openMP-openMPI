@@ -13,7 +13,7 @@ int main(int argc, char** argv)
   int num_threads;
   int thread_num = -1; 
   int num_iter = 10;
-  int exp_iter = 1000;
+  int exp_iter = 1e4;
   long total_time = 0;
   int pub = 0; 
 

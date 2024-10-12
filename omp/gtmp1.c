@@ -33,48 +33,51 @@ procedure dissemination_barrier
         sense := not sense
     parity := 1 - parity
 */
-
-int **flags;
-int n_threads;
-int rounds;
-static int parity = 0;
-static int local_sense = 1;
-
-#pragma omp threadprivate(parity, local_sense)
+static int rounds;
+static int **flags;
+static int n_threads;
 
 void gtmp_init(int num_threads){
     n_threads = num_threads;
-    rounds = (int)ceil(log2(num_threads)); // calculate rounds
+    rounds = (int)ceil(log2(num_threads)); // log2(P) rounds
 
     // allocate memory for flags: flags[thread_id][parity][round]
-    flags = (int**)malloc(num_threads * sizeof(int*));
-    for (int i = 0; i < num_threads; i++)
+    flags = (int**)malloc(n_threads * sizeof(int*));
+    for (int i = 0; i < n_threads; i++)
     {
         flags[i] = (int*)malloc(2 * rounds * sizeof(int));
         for (int j = 0; j < 2 * rounds; j++)
         {
-            flags[i][j] = 0; // init all flags to 0
+            flags[i][j] = 0; // initialize all flags to 0
         }
     }
 }
 
 void gtmp_barrier(){
     int thread_id = omp_get_thread_num();
+    int local_sense = 0;
+    int parity = 0; // start with parity 0
 
     for (int round = 0; round < rounds; round++)
     {
-        int peer = (thread_id + (1 << round)) % n_threads;
-        flags[peer][parity * rounds + round] = local_sense;
+        int partner = (thread_id + (1 << round)) % n_threads;
 
-        // spin on local sense until peer sends wake up call
-        while (flags[thread_id][parity * rounds + round] != local_sense);
+        // signal partner
+        flags[partner][parity * rounds + round] = !local_sense;
+        // #pragma omp flush(flags) // make sure the flag is visible to other threads
+
+        // spin on local sense until partner sends wake up call
+        while (flags[thread_id][parity * rounds + round] == local_sense);
+        // {
+        //     #pragma omp flush(flags) // check if flag has been updated
+        // }
     }
 
+    // flip local sense if parity is 1 after all rounds
     if (parity == 1)
     {
         local_sense = !local_sense;
     }
-    
     parity = 1 - parity; // alternate parity
 }
 
@@ -83,7 +86,5 @@ void gtmp_finalize(){
     {
         free(flags[i]);
     }
-
     free(flags);
 }
-
