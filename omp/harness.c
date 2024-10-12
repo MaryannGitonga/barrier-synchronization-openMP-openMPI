@@ -12,7 +12,9 @@ int main(int argc, char** argv)
 
   int num_threads;
   int thread_num = -1; 
-  int num_iter = 100;
+  int num_iter = 10;
+  int exp_iter = 1000;
+  long total_time = 0;
   int pub = 0; 
 
 
@@ -32,44 +34,48 @@ int main(int argc, char** argv)
 
   omp_set_num_threads(num_threads);
 
-  gtmp_init(num_threads);
-
-  clock_gettime(CLOCK_REALTIME, &tstart);
-  // start_time = omp_get_wtime();
-
-  /* ==============================================
-  Parellel part
-  ==============================================*/  
-  int i=0;
-  #pragma omp parallel shared(pub) firstprivate(thread_num, i) 
+  for (int j = 0; j < exp_iter; j++)
   {
-    thread_num = omp_get_thread_num(); 
-    for(i=0; i < num_iter; i++){
-      #pragma omp critical 
-      {
-        pub += thread_num;
-      }
+    gtmp_init(num_threads);
 
-      gtmp_barrier();
-      #pragma omp master
-      {
-        printf("round%d:thread%d | pub = %d\n", i, thread_num, pub);
+    clock_gettime(CLOCK_REALTIME, &tstart);
+
+    /* ==============================================
+    Parellel part
+    ==============================================*/  
+    int i=0;
+    #pragma omp parallel shared(pub) firstprivate(thread_num, i) 
+    {
+      thread_num = omp_get_thread_num();
+      for(i=0; i < num_iter; i++){
+        #pragma omp critical 
+        {
+          pub += thread_num;
+        }
+
+        gtmp_barrier();
+        // #pragma omp master
+        // {
+        //   printf("round%d:thread%d | pub = %d\n", i, thread_num, pub);
+        // }
+        // gtmp_barrier();
       }
-      gtmp_barrier();
     }
+
+    /* ==============================================
+    Timing check & clean up
+    ==============================================*/
+    clock_gettime(CLOCK_REALTIME, &tend);
+    
+    // end_time = omp_get_wtime();
+    dt = (tend.tv_sec*1e6+tend.tv_nsec/1e3)-(tstart.tv_sec*1e6+tstart.tv_nsec/1e3);
+    // time_diff = (end_time - start_time) * 1e6;
+    total_time += dt;
+
+    gtmp_finalize();
   }
 
-  /* ==============================================
-  Timing check & clean up
-  ==============================================*/
-  clock_gettime(CLOCK_REALTIME, &tend);
-  
-  // end_time = omp_get_wtime();
-  dt = (tend.tv_sec*1e6+tend.tv_nsec/1e3)-(tstart.tv_sec*1e6+tstart.tv_nsec/1e3);
-  // time_diff = (end_time - start_time) * 1e6;
+  printf("Average time taken for %d experiments: %ld μs\n", exp_iter, total_time/exp_iter);
 
-  printf("Time taken: %.0f μs\n", dt);
-
-  gtmp_finalize();
   return 0;
 }

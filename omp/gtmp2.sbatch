@@ -9,7 +9,6 @@
 
 echo "Started on `/bin/hostname`"
 
-
 cd ~/omp
 
 module load gcc/12.3.0 mvapich2/2.3.7-1
