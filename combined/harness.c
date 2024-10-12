@@ -48,9 +48,12 @@ int main(int argc, char** argv)
   MPI_Get_processor_name(processor_name, &name_len); // Get the name of the processor
 
   // debugging purpose
+  MPI_Barrier(MPI_COMM_WORLD);
+  #pragma omp barrier
   printf("Hello world from processor %s, rank %d out of %d processors\n",
           processor_name, my_id, num_processes);
   MPI_Barrier(MPI_COMM_WORLD);
+  #pragma omp barrier
 
   // if(my_id == 0){ 
     // time_diff_sum = (double *)malloc(sizeof(double) * num_processes);
@@ -101,7 +104,7 @@ int main(int argc, char** argv)
   
     if(my_id == 0){
       total_time += time_diff_sum;
-      printf("iter: %d |dt: %f\n", j, dt);
+      // printf("iter: %d |dt: %f\n", j, dt);
     }
     combined_finalize();  
   }
