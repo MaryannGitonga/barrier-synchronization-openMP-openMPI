@@ -57,15 +57,14 @@ int main(int argc, char** argv)
 
     if(my_id == 0){
       total_time += time_diff_sum;
-      fprintf(stdout, "iter: %d |dt: %f\n", j, dt);
     }
     gtmpi_finalize();  
   }
 
-  fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
-  fprintf(stdout, "Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
-
-  fprintf(stderr, "%d, %f,\n", num_processes, total_time/num_processes/exp_iter);
+  if(my_id == 0){
+    fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
+    fprintf(stdout, "Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
+  }
 
   MPI_Finalize();
   return 0;
