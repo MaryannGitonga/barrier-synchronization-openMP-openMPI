@@ -18,6 +18,10 @@ extern bool sense;
 extern int P;
 extern int num_tournament_rounds;
 
+extern int s_P;
+extern int count;
+extern bool s_sense;
+
 void combined_init(int num_processes, int num_threads);
 void combined_barrier(); 
 void gtmpi_barrier();
