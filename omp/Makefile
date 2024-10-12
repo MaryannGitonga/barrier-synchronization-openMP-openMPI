@@ -8,8 +8,9 @@ LDLIBS = $(OMPLIBS) -lm
 
 MP_SRC1 = gtmp1.c
 MP_SRC2 = gtmp2.c
+MP_SRC3 = gtmp3.c
 
-all: mp1 mp2
+all: mp1 mp2 mp3
 
 mp1: gtmp1.c harness.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
@@ -17,8 +18,11 @@ mp1: gtmp1.c harness.o
 mp2: gtmp2.c harness.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
+mp3: gtmp3.c harness.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf *.o *.dSYM mp1 mp2
+	rm -rf *.o *.dSYM mp1 mp2 mp3

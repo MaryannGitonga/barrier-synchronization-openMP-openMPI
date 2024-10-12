@@ -12,11 +12,11 @@ echo "Started on `/bin/hostname`"
 cd ~/omp
 
 module load gcc/12.3.0 mvapich2/2.3.7-1
-gcc gtmp_control.c harness.c -o omp_barrier -g -std=gnu99 -I. -Wall -fopenmp -lm
+gcc gtmp1.c harness.c -o mp1 -g -std=gnu99 -I. -Wall -fopenmp -lm
 
 # Run experiment across 2 to 8 threads
 for threads in {2..8}
 do
     echo "Running mp1 barrier with $threads threads"
-    srun --cpus-per-task=$threads ./mp1 $threads > result_${SLURM_JOB_ID}_${threads}.out
+    srun --cpus-per-task=$threads ./mp1 $threads 1000 > mp1_result_${threads}.out
 done
