@@ -56,10 +56,10 @@ int main(int argc, char** argv)
   // MPI_Barrier(MPI_COMM_WORLD);
   // #pragma omp barrier
 
-  if(my_id == 0){
-    fprintf(stderr, "processes, threads, time\n");
+  // if(my_id == 0){
+    // fprintf(stderr, "processes, threads, time\n");
     // time_diff_sum = (double *)malloc(sizeof(double) * num_processes);
-  }
+  // }
 
   for(int j=0; j< exp_iter; j++){
     combined_init(num_processes, num_threads);
