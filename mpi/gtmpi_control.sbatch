@@ -6,6 +6,7 @@
 #SBATCH -t 5
 #SBATCH -q coc-ice
 #SBATCH -o mpi_barrier.out
+#SBATCH -e mpi_barrier.csv
 
 echo "Started on `/bin/hostname`"
 
@@ -19,5 +20,5 @@ mpicc gtmpi_control.c harness.c -o mpi_barrier -g -Wall -std=gnu99 -I. -lm
 for processes in {2..12}
 do
     echo "Running MPI barrier with $processes processes"
-    srun mpi_barrier $processes
+    srun -N $processes mpi_barrier $processes 10000
 done

@@ -64,6 +64,7 @@ int main(int argc, char** argv)
   if(my_id == 0){
     // fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
     fprintf(stdout, "Average time taken for %d experiments: %ld μs\n", exp_iter, (total_time/num_processes)/exp_iter);
+    fprintf(stderr, "%d, %ld\n", num_processes, (total_time/num_processes)/exp_iter);
   }
 
   MPI_Finalize();
