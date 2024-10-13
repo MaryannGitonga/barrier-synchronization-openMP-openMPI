@@ -7,8 +7,6 @@
 
 int main(int argc, char** argv)
 {
-  // double start_time = 0, end_time = 0, time_diff = 0; // calculate time the barrier takes
-  // double *time_diff_sum = NULL;
   double time_diff_sum;
   struct timespec tstart, tend;
   double dt;
@@ -18,10 +16,6 @@ int main(int argc, char** argv)
   int exp_iter = 1000;
   double total_time = 0;
   int pub = 0;
-
-  // debugging purpose
-  char processor_name[MPI_MAX_PROCESSOR_NAME];
-  int name_len;
 
   MPI_Init(&argc, &argv);
   
@@ -38,24 +32,9 @@ int main(int argc, char** argv)
 
   MPI_Comm_size(MPI_COMM_WORLD, &num_processes); // just in case execution differs with argc
   MPI_Comm_rank(MPI_COMM_WORLD, &my_id);
-  MPI_Get_processor_name(processor_name, &name_len); // Get the name of the processor
-
-  // debugging purpose
-  MPI_Barrier(MPI_COMM_WORLD);
-
-  fprintf(stdout, "Hello world from processor %s, rank %d out of %d processors\n", processor_name, my_id, num_processes);
-
-  // printf("Hello world from processor %s, rank %d out of %d processors\n",
-  //         processor_name, my_id, num_processes);
-  // MPI_Barrier(MPI_COMM_WORLD);
-
-  // if(my_id == 0){ 
-  //   time_diff_sum = (double *)malloc(sizeof(double) * num_processes);
-  // }
 
   for(int j=0; j< exp_iter; j++){
     gtmpi_init(num_processes);
-    // start_time = MPI_Wtime();
     clock_gettime(CLOCK_REALTIME, &tstart);
 
     /* ==============================================
@@ -66,38 +45,27 @@ int main(int argc, char** argv)
       pub += my_id;  
 
       gtmpi_barrier();
-      // printf("round%d:process%d | pub = %d\n", i, my_id, pub);
-      // gtmpi_barrier(); 
     }
+
     /* ==============================================
     Timing check & clean up
     ==============================================*/
     clock_gettime(CLOCK_REALTIME, &tend);
     dt = (tend.tv_sec*1e6+tend.tv_nsec/1e3)-(tstart.tv_sec*1e6+tstart.tv_nsec/1e3);
 
-    // end_time = MPI_Wtime();
-    // time_diff = end_time - start_time;
-    // printf("Time taken: %2f seconds\n", dt);
-
     MPI_Reduce(&dt, &time_diff_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    // MPI_Gather(&dt, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if(my_id == 0){
       total_time += time_diff_sum;
-      fprintf(stdout, "iter: %d |dt: %f\n", j, dt);
     }
     gtmpi_finalize();  
   }
 
-  fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
-  // printf("Total time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2);
-
-  fprintf(stdout, "Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
-  // printf("Average time taken for %d -> omp_get_wtime: %ld μs\n", exp_iter, total_time2/exp_iter);
-
-  fprintf(stderr, "%d, %f,\n", num_processes, total_time/num_processes/exp_iter);
+  if(my_id == 0){
+    fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
+    fprintf(stdout, "Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
+  }
 
   MPI_Finalize();
-  // free(time_diff_sum);
   return 0;
 }
