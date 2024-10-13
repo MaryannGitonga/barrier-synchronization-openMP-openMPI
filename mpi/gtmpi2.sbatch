@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -J cs6210-proj2-mpi1
-#SBATCH -N 8 --ntasks-per-node=1
+#SBATCH -N 12 --ntasks-per-node=1
 #SBATCH --mem-per-cpu=1G
 #SBATCH -t 5
 #SBATCH -q coc-ice
@@ -16,7 +16,7 @@ module load gcc/12.3.0 mvapich2/2.3.7-1
 mpicc gtmpi2.c harness.c -o tournament_barrier_mpi -g -Wall -std=gnu99 -I. -lm 
 
 # Run experiment across 2 to 12 processes
-for processes in {2..12}
+for processes in 2 4 6 8 10 12
 do
     echo "Running tournament barrier with $processes processes"
     srun tournament_barrier_mpi $processes

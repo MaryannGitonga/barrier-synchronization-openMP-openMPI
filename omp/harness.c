@@ -6,13 +6,12 @@
 
 int main(int argc, char** argv)
 {
-  // double start_time = 0, end_time = 0, time_diff = 0; 
   struct timespec tstart, tend;
   double dt;
 
   int num_threads;
   int thread_num = -1; 
-  int num_iter = 10;
+  int num_iter = 100;
   int exp_iter = 1e4;
   long total_time = 0;
   int pub = 0; 
@@ -54,11 +53,6 @@ int main(int argc, char** argv)
         }
 
         gtmp_barrier();
-        // #pragma omp master
-        // {
-        //   printf("round%d:thread%d | pub = %d\n", i, thread_num, pub);
-        // }
-        // gtmp_barrier();
       }
     }
 
@@ -67,9 +61,7 @@ int main(int argc, char** argv)
     ==============================================*/
     clock_gettime(CLOCK_REALTIME, &tend);
     
-    // end_time = omp_get_wtime();
     dt = (tend.tv_sec*1e6+tend.tv_nsec/1e3)-(tstart.tv_sec*1e6+tstart.tv_nsec/1e3);
-    // time_diff = (end_time - start_time) * 1e6;
     total_time += dt;
 
     gtmp_finalize();
