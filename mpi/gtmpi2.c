@@ -74,7 +74,7 @@ void gtmpi_init(int num_processes){
     init basic info
     =============================================================*/
     P = num_processes;
-    num_rounds = get_num_rounds(P);
+    num_rounds = ceil(log2(P));
     MPI_Comm_rank(MPI_COMM_WORLD, &vpid);
     sense = true;
 
@@ -102,9 +102,12 @@ void gtmpi_init(int num_processes){
                     } else if(i + (int)pow(2,k-1) >= P){ // not available in this round // !review again
                         rounds[i][k].role = bye;
                     }
-                } else if(i % (int)pow(2,k) == (int)pow(2,k-1)){ // loser
+                } 
+
+                if(i % (int)pow(2,k) == (int)pow(2,k-1)){ // loser
                     rounds[i][k].role = loser;
                 }
+                
                 if( (i == 0) && ((int)pow(2,k) >= P) ){ // champion when root proc && when last round
                     rounds[i][k].role = champion;
                 }
@@ -129,7 +132,15 @@ void gtmpi_init(int num_processes){
                     rounds[i][k].opponent = -1;
                     break;
             }
+        }
+    }
 
+
+    if(vpid == 0){
+        for(int i=0; i<P; i++){
+            for(int k=0; k<num_rounds+1; k++){
+                printf("rounds[%d][%d].role = %d\n", i,k, rounds[i][k].role);
+            }
         }
     }
 
@@ -195,8 +206,4 @@ void gtmpi_finalize(){
     for(int i=0; i< P; i++)
         free(rounds[i]);
     free(rounds);
-}
-
-int get_num_rounds(int num_processes){
-    return (int) (log((double) num_processes) / log(2.0));
 }
