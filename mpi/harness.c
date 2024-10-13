@@ -13,8 +13,8 @@ int main(int argc, char** argv)
 
   int num_processes, my_id;
   int num_iter = 100;
-  int exp_iter = 1000;
-  double total_time = 0;
+  int exp_iter = 1e4;
+  long total_time = 0;
   int pub = 0;
 
   MPI_Init(&argc, &argv);
@@ -62,8 +62,8 @@ int main(int argc, char** argv)
   }
 
   if(my_id == 0){
-    fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
-    fprintf(stdout, "Average time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes/exp_iter);
+    // fprintf(stdout, "Total time taken for %d -> clock_gettime: %f μs\n", exp_iter, total_time/num_processes);
+    fprintf(stdout, "Average time taken for %d experiments: %ld μs\n", exp_iter, (total_time/num_processes)/exp_iter);
   }
 
   MPI_Finalize();
