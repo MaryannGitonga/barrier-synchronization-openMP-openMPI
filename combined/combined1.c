@@ -13,7 +13,6 @@ int num_tournament_rounds;
 tournament_round_t **tournament_rounds;
 bool sense;
 
-void gtmpi_barrier();
 
 /*=============================================================
 Dissemination barrier
@@ -22,6 +21,7 @@ static int rounds;
 static int **flags;
 static int n_threads;
 
+void gtmpi_barrier();
 void combined_init(int num_processes, int num_threads){
     /*=============================================================
     Dissemination barrier
@@ -44,8 +44,8 @@ void combined_init(int num_processes, int num_threads){
     Tournament barrier
     =============================================================*/
     P = num_processes;
-    num_tournament_rounds = (int)log2(P); 
-    MPI_Comm_rank(MPI_COMM_WORLD, &vpid);    
+    num_tournament_rounds = ceil(log2(P));
+    MPI_Comm_rank(MPI_COMM_WORLD, &vpid);
     sense = true;
 
     tournament_rounds = (tournament_round_t **)calloc(P, sizeof(tournament_round_t *));
@@ -55,8 +55,9 @@ void combined_init(int num_processes, int num_threads){
 
     for(int i=0; i<P; i++){
         for(int k=0; k<num_tournament_rounds+1; k++){
-            // init flag;
+            // init flag to false;
             tournament_rounds[i][k].flag = false;
+
             // init role;
             if(k > 0){ 
                 if(i % (int)pow(2,k) == 0){ // bye or winner
@@ -65,15 +66,19 @@ void combined_init(int num_processes, int num_threads){
                     } else if(i + (int)pow(2,k-1) >= P){ // not available in this round // !review again
                         tournament_rounds[i][k].role = bye;
                     }
-                } else if(i % (int)pow(2,k) == (int)pow(2,k-1)){ // loser
+                } 
+
+                if(i % (int)pow(2,k) == (int)pow(2,k-1)){ // loser
                     tournament_rounds[i][k].role = loser;
                 }
+                
                 if( (i == 0) && ((int)pow(2,k) >= P) ){ // champion when root proc && when last round
                     tournament_rounds[i][k].role = champion;
                 }
             }else if(k==0){ // dropout
                 tournament_rounds[i][k].role = dropout;
             }
+
             // init opponent;
             switch(tournament_rounds[i][k].role)
             {
@@ -152,7 +157,7 @@ void combined_finalize(){
     free(flags);
 }
 
-void gtmpi_barrier(){ 
+void gtmpi_barrier(){ // MPI_Barrier(MPI_COMM_WORLD);
     int tournament_round = 1; // first tournament_round
     int exit_arrival = 1;
 
@@ -161,39 +166,29 @@ void gtmpi_barrier(){
         switch(tournament_rounds[vpid][tournament_round].role)
         {
             case loser:
-                // printf("rounds[%d][%d].role = loser\n", vpid, tournament_round);
                 MPI_Send(                
                     &sense, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD);
-                // printf("rounds[%d][%d].role = loser | done, waiting handshake\n", vpid, tournament_round);
                 MPI_Recv( 
                     &tournament_rounds[vpid][tournament_round].flag, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                // printf("rounds[%d][%d].role = loser | handshaked, now leaving arrival\n", vpid, tournament_round);
                 exit_arrival = 0; //exit loop
                 break;
             case winner:
-                // printf("rounds[%d][%d].role = winner\n", vpid, tournament_round);                
                 MPI_Recv( 
                     &tournament_rounds[vpid][tournament_round].flag, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                // printf("rounds[%d][%d].role = winner | recved msg, break\n", vpid, tournament_round);                
-                break; // no need exit_arrival because champion will do in the last tournament_round
+                break; // no need exit_arrival because champion will do in the last round
             case champion:
-                // printf("rounds[%d][%d].role = champion\n", vpid, tournament_round);                
                 MPI_Recv( 
                     &tournament_rounds[vpid][tournament_round].flag, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                // printf("rounds[%d][%d].role = champion | recved msg\n", vpid, tournament_round);                
-                
                 MPI_Send(                
                     &sense, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD);
-                // printf("rounds[%d][%d].role = champion | start handshake, leaving arrival\n", vpid, tournament_round);                
                 exit_arrival = 0; // exit loop
                 break;
             case bye: // do nothing
-                printf("rounds[%d][%d].role = bye\n", vpid, tournament_round);
             case dropout: // impossible
                 break;
         }
         if(exit_arrival)
-            tournament_round += 1; // move to next tournament_round
+            tournament_round += 1; // move to next round
     }
 
     int exit_wakeup = 1;
@@ -202,13 +197,11 @@ void gtmpi_barrier(){
         switch(tournament_rounds[vpid][tournament_round].role)
         {
             case winner:
-                // printf("rounds[%d][%d].role = winner | exit | before handshake\n", vpid, tournament_round);
                 MPI_Send(               
                     &sense, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD);
-                // printf("rounds[%d][%d].role = winner | exit | handshaked, now leaving\n", vpid, tournament_round);
                 break;
             case dropout:
-                exit_wakeup = 0; // exit loop when all tournament_round is done
+                exit_wakeup = 0; // exit loop when all round is done
                 break;
             case loser: // impossible
             case bye: // do nothing
@@ -218,6 +211,4 @@ void gtmpi_barrier(){
     }
 
     sense = !sense; // reverse barrier
-    // int thread_id = omp_get_thread_num();
-    // printf("node%d:thread%d | round is done!=============================\n", vpid, thread_id);
 }
