@@ -109,7 +109,6 @@ void combined_barrier(){
 
     #pragma omp master
     {
-        // printf("process%d:thread%d | call gtmpi_barrier() \n", node_id, thread_id);
         gtmpi_barrier();
     }
 

@@ -135,15 +135,6 @@ void gtmpi_init(int num_processes){
         }
     }
 
-
-    // if(vpid == 0){
-    //     for(int i=0; i<P; i++){
-    //         for(int k=0; k<num_rounds+1; k++){
-    //             printf("rounds[%d][%d].role = %d\n", i,k, rounds[i][k].role);
-    //         }
-    //     }
-    // }
-
 }
 
 void gtmpi_barrier(){ // MPI_Barrier(MPI_COMM_WORLD);

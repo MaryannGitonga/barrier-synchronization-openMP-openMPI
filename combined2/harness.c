@@ -62,12 +62,7 @@ int main(int argc, char** argv)
         pub += thread_num;
       }  
 
-    combined_barrier(); 
-    #pragma omp master
-    {
-      printf("round%d:process%d:thread%d | pub = %d\n", i, my_id, thread_num, pub);
-    }
-    combined_barrier(); 
+    combined_barrier();
     }
   }
 
@@ -76,7 +71,6 @@ int main(int argc, char** argv)
   ==============================================*/
   end_time = MPI_Wtime();
   time_diff = end_time - start_time;
-  // printf("Time taken: %2f seconds\n", time_diff);
 
   // Gather time calcaulation from all processes
   MPI_Gather(&time_diff, 1, MPI_DOUBLE, time_diff_sum, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);

@@ -114,13 +114,9 @@ void combined_barrier(){
 
         // signal partner
         flags[partner][parity * rounds + round] = !local_sense;
-        // #pragma omp flush(flags) // make sure the flag is visible to other threads
 
         // spin on local sense until partner sends wake up call
         while (flags[thread_id][parity * rounds + round] == local_sense);
-        // {
-        //     #pragma omp flush(flags) // check if flag has been updated
-        // }
     }
 
     // flip local sense if parity is 1 after all rounds
@@ -132,7 +128,6 @@ void combined_barrier(){
 
     #pragma omp master
     {
-        // printf("process%d:thread%d | call gtmpi_barrier() \n", node_id, thread_id);
         gtmpi_barrier();
     }
 

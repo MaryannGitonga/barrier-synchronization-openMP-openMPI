@@ -104,7 +104,6 @@ void combined_barrier(){
 
     #pragma omp master
     {
-        // printf("process%d:thread%d | call gtmpi_barrier() \n", node_id, thread_id);
         gtmpi_barrier();
     }
 
@@ -129,34 +128,25 @@ void gtmpi_barrier(){
         switch(tournament_rounds[vpid][tournament_round].role)
         {
             case loser:
-                // printf("rounds[%d][%d].role = loser\n", vpid, tournament_round);
                 MPI_Send(                
                     &sense, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD);
-                // printf("rounds[%d][%d].role = loser | done, waiting handshake\n", vpid, tournament_round);
                 MPI_Recv( 
                     &tournament_rounds[vpid][tournament_round].flag, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                // printf("rounds[%d][%d].role = loser | handshaked, now leaving arrival\n", vpid, tournament_round);
                 exit_arrival = 0; //exit loop
                 break;
             case winner:
-                // printf("rounds[%d][%d].role = winner\n", vpid, tournament_round);                
                 MPI_Recv( 
                     &tournament_rounds[vpid][tournament_round].flag, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                // printf("rounds[%d][%d].role = winner | recved msg, break\n", vpid, tournament_round);                
                 break; // no need exit_arrival because champion will do in the last tournament_round
             case champion:
-                // printf("rounds[%d][%d].role = champion\n", vpid, tournament_round);                
                 MPI_Recv( 
                     &tournament_rounds[vpid][tournament_round].flag, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                // printf("rounds[%d][%d].role = champion | recved msg\n", vpid, tournament_round);                
                 
                 MPI_Send(                
                     &sense, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD);
-                // printf("rounds[%d][%d].role = champion | start handshake, leaving arrival\n", vpid, tournament_round);                
                 exit_arrival = 0; // exit loop
                 break;
             case bye: // do nothing
-                printf("rounds[%d][%d].role = bye\n", vpid, tournament_round);
             case dropout: // impossible
                 break;
         }
@@ -170,10 +160,8 @@ void gtmpi_barrier(){
         switch(tournament_rounds[vpid][tournament_round].role)
         {
             case winner:
-                // printf("rounds[%d][%d].role = winner | exit | before handshake\n", vpid, tournament_round);
                 MPI_Send(               
                     &sense, 1, MPI_C_BOOL, tournament_rounds[vpid][tournament_round].opponent, 0, MPI_COMM_WORLD);
-                // printf("rounds[%d][%d].role = winner | exit | handshaked, now leaving\n", vpid, tournament_round);
                 break;
             case dropout:
                 exit_wakeup = 0; // exit loop when all tournament_round is done
@@ -186,6 +174,4 @@ void gtmpi_barrier(){
     }
 
     sense = !sense; // reverse barrier
-    // int thread_id = omp_get_thread_num();
-    // printf("node%d:thread%d | round is done!=============================\n", vpid, thread_id);
 }
