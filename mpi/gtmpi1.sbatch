@@ -6,7 +6,6 @@
 #SBATCH -t 5
 #SBATCH -q coc-ice
 #SBATCH -o sense_reversing_barrier_mpi.out
-#SBATCH -e sense_reversing_barrier_mpi.csv
 
 echo "Started on `/bin/hostname`"
 
@@ -20,5 +19,5 @@ mpicc gtmpi2.c harness.c -o sense_reversing_barrier_mpi -g -Wall -std=gnu99 -I. 
 for processes in {2..12}
 do
     echo "Running sense-reversing barrier with $processes processes"
-    srun -N $processes sense_reversing_barrier_mpi $processes 10000
+    srun -N $processes sense_reversing_barrier_mpi $processes
 done
