@@ -24,7 +24,9 @@ static int shared_sense;
 int world_size;
 
 void gtmpi_init(int num_processes){
-    counter = num_processes;
+    int rank = 0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    counter = 1;
     shared_sense = 0;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 }
@@ -36,16 +38,18 @@ void gtmpi_barrier(){
     local_sense = !shared_sense;
 
     // Simulate fetch_and_increment with MPI_Allreduce to sum all the counters
+    int local_count = 1;  // Each process adds 1 to the counter
     int total_count;
-    MPI_Allreduce(&local_sense, &total_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+    MPI_Allreduce(&local_count, &total_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     
-    if (total_count == 1)
+    if (total_count == world_size)
     {
         // if all processes have reached barrier, reset counter and flip sense flag
-        counter = world_size;
+        counter = 1;
         shared_sense = local_sense;
     } else {
-        while (shared_sense != local_sense)
+        while(shared_sense != local_sense);
     }
 }
 
