@@ -14,7 +14,7 @@ mpi1: gtmpi1.c harness.o
 mpi2: gtmpi2.c harness.o
 	$(MPICC) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS)
 
-mpi3: gtmpi3.c harness.o
+mpi3: gtmpi_control.c harness.o
 	$(MPICC) -o $@ $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS)
 
 %.o: %.c

@@ -18,7 +18,7 @@ mp1: gtmp1.c harness.o
 mp2: gtmp2.c harness.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
-mp3: gtmp3.c harness.o
+mp3: gtmp_control.c harness.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 %.o: %.c
