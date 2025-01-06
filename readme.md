@@ -109,7 +109,7 @@ This approach enables synchronization in hybrid systems, where threads on multip
 
 ## References
 1. [Mellor-Crummey, J. M., & Scott, M. L. (1991). *Algorithms for scalable synchronization on shared-memory multiprocessors*. ACM Transactions on Computer Systems.](https://doi.org/10.1145/103727.103729)
-2. [ICE Cluster Resources Documentation, Georgia Institute of Technology.](https://gatech.service-now.com/home?id=kb_article_view&sysparm_article=KB0042095)
+2. [ICE Cluster Resources Documentation.](https://gatech.service-now.com/home?id=kb_article_view&sysparm_article=KB0042095)
 3. [gettimeofday(2) - Linux manual page.](https://man7.org/linux/man-pages/man2/gettimeofday.2.html)
 4. [Krzyzanowski, P. Clock_gettime. pk.org.](https://people.cs.rutgers.edu/~pxk/416/notes/c-tutorials/gettime.html)
 5. [A guide to using OpenMP and MPI on SeaWulf | Division of Information Technology.](https://it.stonybrook.edu/help/kb/a-guide-to-using-openmp-and-mpi-on-seawulf)
